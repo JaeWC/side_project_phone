@@ -72,3 +72,6 @@ export const availableCountries = [
     flag: '🇺🇸'
   }
 ];
+
+export const getName = (code: string) =>
+  availableCountries.filter(country => country.code === code)[0];

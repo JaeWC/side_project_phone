@@ -24,3 +24,4 @@ html(lang="en")
       each number in numbers
         li
           span=number.friendly_name
+          a(href=`/rent/${searchingBy}/${number.phone_number}`) Rent
