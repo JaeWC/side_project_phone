@@ -1,6 +1,11 @@
 import { availableCountries, getName } from '../countries';
 import { Request, Response } from 'express';
-import { numbersByCountry, priceByCountry, buyPhoneNumber } from '../twilio';
+import {
+  numbersByCountry,
+  priceByCountry,
+  buyPhoneNumber,
+  releasePhoneNumberById
+} from '../twilio';
 import { extractPrice } from '../utils';
 
 const searchNumbers = async (req: Request, res: Response) => {
@@ -76,7 +81,31 @@ const rentPhoneNumber = async (req, res) => {
   }
 };
 
+const releasePhoneNumber = async (req, res) => {
+  const {
+    query: { confirmed, pid }
+  } = req;
+  const {
+    params: { phoneNumber }
+  } = req;
+
+  if (confirmed && pid) {
+    try {
+      // TODO: Flash Message with deletion success
+      console.log(pid);
+      await releasePhoneNumberById(pid);
+    } catch (e) {
+      // TODO: Falsh message with error
+      console.log(e);
+    }
+    res.redirect('/account');
+  } else {
+    res.render('release', { phoneNumber, confirmed: false, pid });
+  }
+};
+
 export default {
   searchNumbers,
-  rentPhoneNumber
+  rentPhoneNumber,
+  releasePhoneNumber
 };
