@@ -92,7 +92,6 @@ const releasePhoneNumber = async (req, res) => {
   if (confirmed && pid) {
     try {
       // TODO: Flash Message with deletion success
-      console.log(pid);
       await releasePhoneNumberById(pid);
     } catch (e) {
       // TODO: Falsh message with error
