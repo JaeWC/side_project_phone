@@ -34,7 +34,8 @@ export const buyPhoneNumber = (number: string, username: string) => {
     'IncomingPhoneNumbers.json?',
     querystring.stringify({
       PhoneNumber: number,
-      FriendlyName: username
+      FriendlyName: username,
+      SmsUrl: 'TO DO: Real URL'
     }),
     {
       headers: {
@@ -53,3 +54,6 @@ export const getPhoneNumbersByName = (name: string) =>
 
 export const releasePhoneNumberById = (id: string) =>
   AccountApi.delete(`IncomingPhoneNumbers/${id}.json`);
+
+export const getInbox = (phoneNumber: string) =>
+  AccountApi.get(`Messages.json?To=${phoneNumber}&PageSize=1000`);

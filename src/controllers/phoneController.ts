@@ -4,9 +4,11 @@ import {
   numbersByCountry,
   priceByCountry,
   buyPhoneNumber,
-  releasePhoneNumberById
+  releasePhoneNumberById,
+  getInbox
 } from '../twilio';
 import { extractPrice } from '../utils';
+import { sendNewSMSMail } from '../mailgun';
 
 const searchNumbers = async (req: Request, res: Response) => {
   const {
@@ -103,8 +105,37 @@ const releasePhoneNumber = async (req, res) => {
   }
 };
 
+const getPhoneNumberInbox = async (req, res) => {
+  const {
+    params: { phoneNumber }
+  } = req;
+  let error;
+  let messages;
+  try {
+    const {
+      data: { messages: receivedMessages }
+    } = await getInbox(phoneNumber);
+    messages = receivedMessages;
+  } catch (e) {
+    console.log(e);
+    error = "Can't check Inbox at this time";
+  }
+  res.render('inbox', { phoneNumber, error, messages });
+};
+
+const handleNewMessage = (req, res) => {
+  const {
+    body: { From, Body, To }
+  } = req;
+
+  res.end().status(200);
+  sendNewSMSMail(From, Body, To);
+};
+
 export default {
   searchNumbers,
   rentPhoneNumber,
-  releasePhoneNumber
+  releasePhoneNumber,
+  getPhoneNumberInbox,
+  handleNewMessage
 };
