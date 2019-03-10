@@ -41,7 +41,8 @@ const searchNumbers = async (req: Request, res: Response) => {
     searchingBy: country,
     numbers,
     price,
-    error
+    error,
+    title: 'Get SMS from anywhere in the world'
   });
 };
 

@@ -1,4 +1,5 @@
 import { getPhoneNumbersByName } from '../twilio';
+import { hashPassword } from '../utils';
 
 const myAccount = async (req, res) => {
   const USERNAME = 'Jae Phone';
@@ -12,6 +13,19 @@ const myAccount = async (req, res) => {
   }
 };
 
+const createAccount = async (req, res) => {
+  if (req.method === 'GET') {
+    res.render('create-account', { title: 'Create An Account' });
+  } else if (req.method === 'POST') {
+    const {
+      body: { email, password }
+    } = req;
+    const hash = await hashPassword(password);
+    res.render('create-account');
+  }
+};
+
 export default {
-  myAccount
+  myAccount,
+  createAccount
 };

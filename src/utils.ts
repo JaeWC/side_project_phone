@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 interface IPrice {
   number_type: 'local' | 'mobile' | 'toll_free';
   base_price: string;
@@ -17,4 +19,17 @@ export const extractPrice = (prices: [IPrice], code: string) => {
   })[0];
 
   return price.base_price;
+};
+
+export const hashPassword = async (plain: string): Promise<string> => {
+  const hash = await bcrypt.hash(plain, 10);
+  return hash;
+};
+
+export const checkPassword = async (
+  hash: string,
+  plain: string
+): Promise<boolean> => {
+  const isSame = await bcrypt.compare(plain, hash);
+  return isSame;
 };

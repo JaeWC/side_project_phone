@@ -8,6 +8,8 @@ import flash from 'express-flash';
 import session from 'express-session';
 import phoneRouter from './routers/phoneRouter';
 import accountRouter from './routers/accountRouter';
+import globalRouter from './routers/globalRouter';
+import { localsMiddleware } from './middlewares';
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,8 +30,10 @@ app.use(
   })
 );
 app.use(flash());
+app.use(localsMiddleware);
 
-app.use('/', phoneRouter);
+app.use('/', globalRouter);
+app.use('/numbers', phoneRouter);
 app.use('/account', accountRouter);
 
 const handleListening = () =>
