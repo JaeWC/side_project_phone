@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { adj, nouns } from './words';
 
 interface IPrice {
   number_type: 'local' | 'mobile' | 'toll_free';
@@ -32,4 +33,10 @@ export const checkPassword = async (
 ): Promise<boolean> => {
   const isSame = await bcrypt.compare(plain, hash);
   return isSame;
+};
+
+export const genSecret = (): string => {
+  const MAX = nouns.length;
+  const wordNumber = Math.floor(Math.random() * MAX);
+  return `${adj[wordNumber]} ${nouns[wordNumber]}`;
 };

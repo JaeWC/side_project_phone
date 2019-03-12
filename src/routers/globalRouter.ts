@@ -9,5 +9,9 @@ globalRouter
   .route('/create-account')
   .get(accountController.createAccount)
   .post(accountController.createAccount);
+globalRouter
+  .route('/log-in')
+  .get(accountController.logIn)
+  .post(accountController.logIn);
 
 export default globalRouter;
