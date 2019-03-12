@@ -2,9 +2,9 @@ type User {
   id: ID! @unique
   email: String! @unique
   password: String!
-  isVerified: Boolean!
+  isVerified: Boolean! @default(value: "false")
   numbers: [Number!]!
-  verificationSecret: String!
+  verificationSecret: String @default(value: "")
 }
 
 type Number {
