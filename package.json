@@ -15,10 +15,8 @@
     "express": "^4.16.4",
     "express-flash": "^0.0.2",
     "express-session": "^1.15.6",
-    "graphql": "^14.1.1",
     "mailgun-js": "^0.22.0",
     "morgan": "^1.9.1",
-    "prisma-client-lib": "^1.28.3",
     "pug": "^2.0.3",
     "twilio": "^3.28.1"
   },
