@@ -1,17 +1,33 @@
 import express from 'express';
+import passport from 'passport';
 import phoneController from '../controllers/phoneController';
-import accountController from '../controllers/accountController';
+import usersController from '../controllers/usersController';
+import { onlyPrivate, onlyPublic } from '../middlewares';
 
 const globalRouter = express.Router();
 
 globalRouter.get('/', phoneController.searchNumbers);
+
 globalRouter
   .route('/create-account')
-  .get(accountController.createAccount)
-  .post(accountController.createAccount);
+  .get(usersController.createAccount, onlyPublic)
+  .post(usersController.createAccount, onlyPublic);
+
 globalRouter
   .route('/log-in')
-  .get(accountController.logIn)
-  .post(accountController.logIn);
+  .get(usersController.logIn)
+  .post(
+    onlyPublic,
+    passport.authenticate('local', {
+      failureRedirect: '/log-in',
+      successRedirect: '/dashboard',
+      successFlash: 'Welcome',
+      failureFlash: `Can't log in. Check emaol and/or password`
+    })
+  );
+
+globalRouter.get('/dashboard', onlyPrivate, usersController.myAccount);
+
+globalRouter.get('/log-out', onlyPrivate, usersController.logOut);
 
 export default globalRouter;

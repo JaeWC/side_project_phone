@@ -1,5 +1,5 @@
 import { getPhoneNumbersByName } from '../twilio';
-import { hashPassword, genSecret, checkPassword } from '../utils';
+import { hashPassword, genSecret } from '../utils';
 import { prisma } from '../../generated/prisma-client';
 import { sendVerificationEmail } from '../mailgun';
 
@@ -9,7 +9,10 @@ const myAccount = async (req, res) => {
     const {
       data: { incoming_phone_numbers }
     } = await getPhoneNumbersByName(USERNAME);
-    res.render('account', { numbers: incoming_phone_numbers });
+    res.render('dashboard', {
+      numbers: incoming_phone_numbers,
+      title: 'Dashboard'
+    });
   } catch (error) {
     console.log(error);
   }
@@ -44,31 +47,16 @@ const createAccount = async (req, res) => {
   }
 };
 
-const logIn = async (req, res) => {
-  const title = 'Log In';
-  let error;
+const logIn = (req, res) => res.render('login', { title: 'Log In' });
 
-  if (req.method === 'POST') {
-    const {
-      body: { email, password }
-    } = req;
-    const user = await prisma.user({ email });
-    if (user) {
-      const check = await checkPassword(user.password, password);
-      if (check) {
-      } else {
-        error = 'Wrong Password';
-      }
-    }
-  } else {
-    error = 'This user does not exists. You need to create an account?';
-  }
-
-  res.render('login', { title, error });
+const logOut = (req, res) => {
+  req.logout();
+  res.redirect('/');
 };
 
 export default {
   myAccount,
   createAccount,
-  logIn
+  logIn,
+  logOut
 };
