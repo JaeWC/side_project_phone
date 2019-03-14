@@ -10,14 +10,15 @@ globalRouter.get('/', phoneController.searchNumbers);
 
 globalRouter
   .route('/create-account')
+  .all(onlyPublic)
   .get(usersController.createAccount, onlyPublic)
   .post(usersController.createAccount, onlyPublic);
 
 globalRouter
   .route('/log-in')
+  .all(onlyPublic)
   .get(usersController.logIn)
   .post(
-    onlyPublic,
     passport.authenticate('local', {
       failureRedirect: '/log-in',
       successRedirect: '/dashboard',
