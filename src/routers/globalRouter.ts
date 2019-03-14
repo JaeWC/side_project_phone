@@ -27,7 +27,7 @@ globalRouter
     })
   );
 
-globalRouter.get('/dashboard', onlyPrivate, usersController.myAccount);
+globalRouter.get('/dashboard', onlyPrivate, usersController.dashboard);
 
 globalRouter.get('/log-out', onlyPrivate, usersController.logOut);
 
