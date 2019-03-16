@@ -1,7 +1,7 @@
 import { getPhoneNumbersByName } from '../twilio';
 import { hashPassword, genSecret, checkPassword } from '../utils';
 import { prisma } from '../../generated/prisma-client';
-import { sendVerificationEmail } from '../mailgun';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../mailgun';
 
 const dashboard = async (req, res) => {
   const { user } = req;
@@ -20,7 +20,6 @@ const dashboard = async (req, res) => {
 
 const createAccount = async (req, res) => {
   const { method } = req;
-  const title = 'Create An Account';
   let error;
 
   if (method === 'POST') {
@@ -46,7 +45,7 @@ const createAccount = async (req, res) => {
     } catch (e) {
       error = e;
     }
-    res.render('create-account', { title, error });
+    res.render('create-account', { title: 'Create An Account', error });
   }
 };
 
@@ -64,7 +63,11 @@ const verifyEmail = async (req, res) => {
     user,
     body: { secret }
   } = req;
-  const title = 'Verify Email';
+
+  if (user.isVerified) {
+    req.flash('success', 'Your email is already verified!');
+    res.redirect('/dashboard');
+  }
   if (method === 'POST') {
     if (user.verificationSecret === secret) {
       await prisma.updateUser({
@@ -83,7 +86,7 @@ const verifyEmail = async (req, res) => {
     sendVerificationEmail(user.email, newSecret);
     req.flash('info', 'We just re-sent you a new secret.');
   }
-  res.render('verify-email', { title });
+  res.render('verify-email', { title: 'Verify Email' });
 };
 
 const changePassword = async (req, res) => {
@@ -136,7 +139,7 @@ const changeEmail = async (req, res) => {
           data: { verificationSecret: newSecret, isVerified: false, email }
         });
         sendVerificationEmail(user.email, newSecret);
-        req.flash('warning', 'Email changed. You need to verify it again');
+        req.flash('info', 'Email changed. You need to verify it again');
         return res.redirect('/users/verify-email');
       } catch (error) {
         error = `Can't update email, try again later`;
@@ -152,6 +155,104 @@ const account = (req, res) => {
   res.render('account', { title: 'Account' });
 };
 
+const forgotPassword = async (req, res) => {
+  const {
+    method,
+    body: { email }
+  } = req;
+  let error;
+  const MILISECONDS = 86400000;
+  if (method === 'POST') {
+    const user = await prisma.user({ email });
+
+    try {
+      if (user) {
+        const secret = genSecret();
+        const miliSecondsNow = Date.now();
+        const miliSecondsTomorrow = miliSecondsNow + MILISECONDS;
+        const key = await prisma.createRecoverKey({
+          user: {
+            connect: {
+              id: user.id
+            }
+          },
+          key: secret,
+          validUntil: String(miliSecondsTomorrow)
+        });
+        sendPasswordResetEmail(user.id, key.id);
+        req.flash('success', 'Check your email');
+        res.redirect('/');
+      } else {
+        error = 'There is no user with this email';
+      }
+    } catch (e) {
+      error = `Can't Change Password`;
+    }
+  }
+  res.render('forgot-password', { title: 'Forgot Password', error });
+};
+
+const resetPassword = async (req, res) => {
+  const {
+    method,
+    body: { password, password2 },
+    params: { id }
+  } = req;
+  const key = await prisma.recoverKey({ id });
+  const user = await prisma.recoverKey({ id }).user();
+  const secondsNow = Date.now();
+  const isExpired = secondsNow > parseInt(key.validUntil, 10);
+  let error;
+  let expired = false;
+  if (method === 'POST') {
+    console.log(111);
+    if (password !== password2) {
+      error = 'The new password confirmation does not match';
+    } else {
+      if (!isExpired) {
+        const newHash = await hashPassword(password);
+        await prisma.updateUser({
+          where: { id: user.id },
+          data: { password: newHash }
+        });
+        await prisma.deleteRecoverKey({ id });
+        req.flash('success', 'Password Changed');
+        return res.redirect('/log-in');
+      } else {
+        expired = true;
+        error = 'This link has expired';
+      }
+    }
+  } else {
+    console.log(222);
+    try {
+      if (key) {
+        if (isExpired) {
+          expired = true;
+          error = 'This link has expired';
+        }
+      } else {
+        expired = true;
+        error = 'This link has expired';
+      }
+    } catch {
+      expired = true;
+      error = `Can't get verification key`;
+    }
+  }
+  res.status(400);
+  res.render('reset-password', { title: 'Reset Password', error, expired });
+};
+
+const afterLogin = async (req, res) => {
+  const {
+    session: { continuePurchase, previousPage }
+  } = req;
+  res.redirect(continuePurchase || previousPage || '/dashboard');
+  delete req.session.continuePurchase;
+  delete req.session.previousPage;
+};
+
 export default {
   dashboard,
   account,
@@ -160,5 +261,8 @@ export default {
   logOut,
   verifyEmail,
   changePassword,
-  changeEmail
+  changeEmail,
+  forgotPassword,
+  resetPassword,
+  afterLogin
 };

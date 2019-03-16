@@ -21,10 +21,10 @@ globalRouter
   .post(
     passport.authenticate('local', {
       failureRedirect: '/log-in',
-      successRedirect: '/dashboard',
       successFlash: 'Welcome',
       failureFlash: `Can't log in. Check emaol and/or password`
-    })
+    }),
+    usersController.afterLogin
   );
 
 globalRouter.get('/dashboard', onlyPrivate, usersController.dashboard);

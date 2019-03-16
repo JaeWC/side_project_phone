@@ -29,12 +29,12 @@ export const numbersByCountry = (countryCode: string) =>
 export const priceByCountry = (countryCode: string) =>
   PricingApi.get(`PhoneNumbers/Countries/${countryCode}`);
 
-export const buyPhoneNumber = (number: string, username: string) => {
+export const buyPhoneNumber = (number: string, userId: string) => {
   return AccountApi.post(
     'IncomingPhoneNumbers.json?',
     querystring.stringify({
       PhoneNumber: number,
-      FriendlyName: username,
+      FriendlyName: userId,
       SmsUrl: 'TO DO: Real URL'
     }),
     {

@@ -9,7 +9,14 @@ type User {
 
 type Number {
   id: ID! @unique
-  twilioId: String!
-  number: String!
+  twilioId: String! @unique
+  number: String! @unique
   owner: User!
+}
+
+type RecoverKey {
+  id: ID! @unique
+  user: User!
+  key: String!
+  validUntil: String!
 }

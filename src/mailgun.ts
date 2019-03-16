@@ -33,3 +33,15 @@ export const sendVerificationEmail = (to: string, secret: string) => {
   };
   return sendMail(mail);
 };
+
+export const sendPasswordResetEmail = (to: string, keyId: string) => {
+  const mail: mailgun.messages.SendData = {
+    from: 'Jae Phone<j.thechois@gmail.com>',
+    to: 'j.thechois@gmail.com',
+    subject: 'Change your password',
+    html: `
+      Click here to change your password http://localhost:4000/users/reset-password/${keyId}
+      `
+  };
+  return sendMail(mail);
+};
