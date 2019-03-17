@@ -7,13 +7,13 @@ passport.use(
   new Strategy({ usernameField: 'email' }, async (username, password, done) => {
     try {
       const user = await prisma.user({ email: username });
+
       if (user) {
         const check = await checkPassword(user.password, password);
-        if (check) {
-          done(null, user);
-        } else {
-          done(null, false, { message: 'User not found' });
-        }
+
+        check
+          ? done(null, user)
+          : done(null, false, { message: 'User not found' });
       } else {
         done(null, false, {
           message: 'This user does not exists. You need to create an account'

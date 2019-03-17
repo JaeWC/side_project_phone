@@ -5,10 +5,12 @@ import { sendVerificationEmail, sendPasswordResetEmail } from '../mailgun';
 
 const dashboard = async (req, res) => {
   const { user } = req;
+
   try {
     const {
       data: { incoming_phone_numbers }
     } = await getPhoneNumbersByName(user.id);
+
     res.render('dashboard', {
       numbers: incoming_phone_numbers,
       title: 'Dashboard'
@@ -26,16 +28,20 @@ const createAccount = async (req, res) => {
     const {
       body: { email, password }
     } = req;
+
     try {
       const exists = await prisma.$exists.user({ email });
+
       if (!exists) {
         const hash = await hashPassword(password);
         const sercret = genSecret();
+
         await prisma.createUser({
           email,
           password: hash,
           verificationSecret: sercret
         });
+
         sendVerificationEmail(email, sercret);
         req.flash('success', 'Account created! Log in now');
         return res.redirect('/log-in');
@@ -126,7 +132,9 @@ const changeEmail = async (req, res) => {
     body: { email },
     user
   } = req;
+
   let error;
+
   if (method === 'POST') {
     const isUsed = await prisma.$exists.user({
       email
@@ -160,8 +168,10 @@ const forgotPassword = async (req, res) => {
     method,
     body: { email }
   } = req;
-  let error;
   const MILISECONDS = 86400000;
+
+  let error;
+
   if (method === 'POST') {
     const user = await prisma.user({ email });
 
@@ -179,6 +189,7 @@ const forgotPassword = async (req, res) => {
           key: secret,
           validUntil: String(miliSecondsTomorrow)
         });
+
         sendPasswordResetEmail(user.id, key.id);
         req.flash('success', 'Check your email');
         res.redirect('/');
@@ -198,24 +209,29 @@ const resetPassword = async (req, res) => {
     body: { password, password2 },
     params: { id }
   } = req;
+
   const key = await prisma.recoverKey({ id });
   const user = await prisma.recoverKey({ id }).user();
   const secondsNow = Date.now();
   const isExpired = secondsNow > parseInt(key.validUntil, 10);
-  let error;
+
   let expired = false;
+  let error;
+
   if (method === 'POST') {
-    console.log(111);
     if (password !== password2) {
       error = 'The new password confirmation does not match';
     } else {
       if (!isExpired) {
         const newHash = await hashPassword(password);
+
         await prisma.updateUser({
           where: { id: user.id },
           data: { password: newHash }
         });
+
         await prisma.deleteRecoverKey({ id });
+
         req.flash('success', 'Password Changed');
         return res.redirect('/log-in');
       } else {
@@ -224,7 +240,6 @@ const resetPassword = async (req, res) => {
       }
     }
   } else {
-    console.log(222);
     try {
       if (key) {
         if (isExpired) {
@@ -240,7 +255,6 @@ const resetPassword = async (req, res) => {
       error = `Can't get verification key`;
     }
   }
-  res.status(400);
   res.render('reset-password', { title: 'Reset Password', error, expired });
 };
 
@@ -248,7 +262,9 @@ const afterLogin = async (req, res) => {
   const {
     session: { continuePurchase, previousPage }
   } = req;
+
   res.redirect(continuePurchase || previousPage || '/dashboard');
+
   delete req.session.continuePurchase;
   delete req.session.previousPage;
 };
