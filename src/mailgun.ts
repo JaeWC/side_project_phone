@@ -9,7 +9,7 @@ const sendMail = mail => client.messages().send(mail);
 
 export const sendNewSMSMail = (from: string, body: string, owner: string) => {
   const mail: mailgun.messages.SendData = {
-    from: 'Jae Phone<j.thechois@gmail.com>',
+    from: 'Jae Phone <me@samples.mailgun.org>',
     to: 'j.thechois@gmail.com',
     subject: '(1) New Message on Jae Phone',
     html: `

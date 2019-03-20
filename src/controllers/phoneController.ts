@@ -67,9 +67,10 @@ const rentPhoneNumber = async (req, res) => {
       });
     } catch (e) {
       req.flash('error', 'Something happened!');
+      console.log(e);
       res.redirect('/');
     }
-  } else if (Boolean(confirmed)) {
+  } else if (Boolean(confirmed) === true) {
     if (!user) {
       req.session.continuePurchase = `/numbers/rent/${countryCode}/${phoneNumber}`;
       req.flash('info', 'Create an account to continue with your purchase');
@@ -92,6 +93,7 @@ const rentPhoneNumber = async (req, res) => {
         req.flash('success', 'The number has been purchased!');
         res.redirect('/account');
       } catch (error) {
+        console.log(error);
         req.flash(
           'error',
           'There was an error renting this phone number, choose a different one'
@@ -108,20 +110,16 @@ const releasePhoneNumber = async (req, res) => {
     params: { phoneNumber },
     user
   } = req;
-
   try {
     const exists = await prisma.$exists.number({
       AND: [{ owner: { id: user.id } }, { number: phoneNumber, twilioId: pid }]
     });
-
     if (!exists) {
       req.flash('error', 'Number not found');
       res.redirect('/dashboard');
     }
-
     if (confirmed && pid) {
       req.flash('success', 'This number has been deleted from your account');
-
       await releasePhoneNumberById(pid);
       await prisma.deleteNumber({ twilioId: pid, number: phoneNumber });
 
@@ -139,6 +137,7 @@ const releasePhoneNumber = async (req, res) => {
       'error',
       'Could not delete this number from your account, try again later'
     );
+    console.log(e);
     res.redirect('/dashboard');
   }
 };
@@ -148,10 +147,8 @@ const getPhoneNumberInbox = async (req, res) => {
     params: { phoneNumber },
     user
   } = req;
-
-  let messages;
   let error;
-
+  let messages;
   try {
     const exists = await prisma.$exists.number({
       number: phoneNumber,
@@ -159,7 +156,6 @@ const getPhoneNumberInbox = async (req, res) => {
         id: user.id
       }
     });
-
     if (!exists) {
       req.flash('error', `You don't own this number`);
       return res.redirect('/dashboard');
@@ -170,13 +166,13 @@ const getPhoneNumberInbox = async (req, res) => {
     } = await getInbox(phoneNumber);
     messages = receivedMessages;
   } catch (e) {
+    console.log(e);
     error = "Can't check Inbox at this time";
   }
-
   res.render('inbox', {
     phoneNumber,
-    messages,
     error,
+    messages,
     title: `Inbox for ${phoneNumber}`
   });
 };
@@ -187,10 +183,8 @@ const handleNewMessage = async (req, res) => {
   } = req;
 
   res.end().status(200);
-
   try {
     const owner = await prisma.number({ number: To }).owner();
-
     if (owner) {
       sendNewSMSMail(From, Body, owner.email);
     }
